@@ -18,10 +18,10 @@ int main(int argc, char **argv)
 
 	float A=0, B=0, i, j, z[1760];
     char b[1760];
-    consoleSelect(&top);
-    printf("\x1b[2J");
     consoleSelect(&bottom);
     printf("\x1b[31mHold Start to exit.\x1b[0m");
+    consoleSelect(&top);
+    printf("\x1b[2J");
     for(; ; ) {
     	hidScanInput();
     	u32 kDown = hidKeysDown();
@@ -51,13 +51,11 @@ int main(int argc, char **argv)
                 }
             }
         }
-        consoleSelect(&top);
-        printf("\x1b[d");
         for(k=0; 1761>k; k++)
             putchar(k%80?b[k]:10);
-        usleep(30000);
-        A+=0.04;
-        B+= 0.02;
+        printf("\x1b[H");
+        A+=0.08;
+        B+= 0.04;
 
         gfxFlushBuffers();
 		gfxSwapBuffers();
