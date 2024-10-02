@@ -1,67 +1,106 @@
 #include <3ds.h>
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
-#include <unistd.h>
+#include <string.h>
+#include "mod_driver.h"
 
-int k;
+#define BOTTOM_SCREEN_WIDTH 40
+#define BOTTOM_SCREEN_HEIGHT 30
 
-int main(int argc, char **argv)
-{
-    romfsInit();
-	gfxInitDefault();
+int main() {
+  gfxInitDefault();
+  PrintConsole top_screen, bottom_screen;
+  consoleInit(GFX_TOP, &top_screen);
+  consoleInit(GFX_BOTTOM, &bottom_screen);
+  ndspInit();
+  romfsInit();
 
-	PrintConsole top, bottom;
+  consoleSelect(&bottom_screen);
+  printf("\x1b[37;44m");
+  for (u8 y = 0; y < BOTTOM_SCREEN_HEIGHT; y++) {
+    for (u8 x = 0; x < BOTTOM_SCREEN_WIDTH; x++) {
+      char c = ' ';
+      if ((x == 0 || x == BOTTOM_SCREEN_WIDTH - 1) && (y == 0 || y == BOTTOM_SCREEN_HEIGHT - 1)) {
+        c = '.';
+      } else if (y == 0) {
+        c = '-';
+      } else if (y == BOTTOM_SCREEN_HEIGHT - 1) {
+        c = '_';
+      } else if (x == 0 || x == BOTTOM_SCREEN_WIDTH - 1) {
+        c = '|';
+      }
+      printf("%c", c);
+    }
+  }
 
-	consoleInit(GFX_TOP, &top);
-	consoleInit(GFX_BOTTOM, &bottom);
+  ModplugPlayer player = create_player();
+  int result = play_mod(&player, "romfs:/main_theme.mod");
+  if (result != 0) {
+    printf("Failed to play MOD file.\n");
+  }
 
-	float A=0, B=0, i, j, z[1760];
-    char b[1760];
-    consoleSelect(&bottom);
-    printf("\x1b[31mHold Start to exit.\x1b[0m");
-    consoleSelect(&top);
-    printf("\x1b[2J");
-    for(; ; ) {
-    	hidScanInput();
-    	u32 kDown = hidKeysDown();
-    	if (kDown & KEY_START) break;
-        memset(b,32,1760);
-        memset(z,0,7040);
-        for(j=0; 6.28>j; j+=0.07) {
-            for(i=0; 6.28 >i; i+=0.02) {
-                float sini=sin(i),
-                      cosj=cos(j),
-                      sinA=sin(A),
-                      sinj=sin(j),
-                      cosA=cos(A),
-                      cosj2=cosj+2,
-                      mess=1/(sini*cosj2*sinA+sinj*cosA+5),
-                      cosi=cos(i),
-                      cosB=cos(B),
-                      sinB=sin(B),
-                      t=sini*cosj2*cosA-sinj* sinA;
-                int x=25+25*mess*(cosi*cosj2*cosB-t*sinB),
-                    y=15+10*mess*(cosi*cosj2*sinB +t*cosB),
-                    o=x+80*y,
-                    N=8*((sinj*sinA-sini*cosj*cosA)*cosB-sini*cosj*sinA-sinj*cosA-cosi *cosj*sinB);
-                if(22>y&&y>0&&x>0&&80>x&&mess>z[o]){
-                    z[o]=mess;
-                    b[o]=".,-~:;=!*#$@"[N>0?N:0];
-                }
-            }
-        }
-        for(k=0; 1761>k; k++)
-            putchar(k%80?b[k]:10);
-        printf("\x1b[H");
-        A+=0.08;
-        B+= 0.04;
+  printf("\x1b[2;2HDonut 3DS        (Press START to quit)");
+  printf("\x1b[4;2HBased on the orignal donut.c by Andy.S");
+  printf("\x1b[6;2HInitial concept by jornmann.");
+  printf("\x1b[8;2HPorted by Killar.");
+  printf("\x1b[10;2HMusic by Liljedahl.");
 
-        gfxFlushBuffers();
-		gfxSwapBuffers();
-		gspWaitForVBlank();
+  consoleSelect(&top_screen);
+  
+  float A = 0, B = 0;
+  float i, j;
+  int k;
+  float z[1500];
+  char b[1500];
+
+  while (aptMainLoop()) {
+    hidScanInput();
+    u32 keyDown = hidKeysDown();
+    if (keyDown & KEY_START) {
+      break;
     }
 
-	gfxExit();
+    memset(b, 32, 1500);
+    memset(z, 0, 1500 * sizeof(float));
+    for (j = 0; j < 6.28; j += 0.07) {
+        for (i = 0; i < 6.28; i += 0.02) {
+            float c = sin(i);
+            float d = cos(j);
+            float e = sin(A);
+            float f = sin(j);
+            float g = cos(A);
+            float h = d + 2;
+            float D = 1 / (c * h * e + f * g + 5);
+            float l = cos(i);
+            float m = cos(B);
+            float n = sin(B);
+            float t = c * h * g - f * e;
+            int x = 25 + 30 * D * (l * h * m - t * n);
+            int y = 15 + 20 * D * (l * h * n + t * m);
+            int o = x + 50 * y;
+            int N = 8 * ((f * e - c * d * g) * m - c * d * e - f * g - l * d * n);
+            if (30 > y && y > 0 && x > 0 && 50 > x && D > z[o]) {
+                z[o] = D;
+                b[o] = ".,-~:;=!*#$@"[N > 0 ? N : 0];
+            }
+        }
+    }
+    printf("\x1b[1;1H");
+    for (k = 0; k < 1500; k++) {
+        putchar(k % 50 ? b[k] : 10);
+    }
+    A += 0.08;
+    B += 0.04;
+
+    gfxFlushBuffers();
+    gfxSwapBuffers();
+    gspWaitForVBlank();
+  }
+
+  stop_mod(&player);
+
+  romfsExit();
+  ndspExit();
+  gfxExit();
 	return 0;
 }
