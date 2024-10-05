@@ -41,10 +41,10 @@ GFXBUILD	:=	$(BUILD)
 ROMFS		:=	romfs
 #GFXBUILD	:=	$(ROMFS)/gfx
 
-APP_TITLE := Donut 3DS
-APP_DESCRIPTION := A Printed Donut
+APP_TITLE := Donut3DS
+APP_DESCRIPTION := An homebrew demo by jornmann ported by Killar.
 APP_AUTHOR := Killar
-APP_ICON := $(TOPDIR)/icon/icon.png
+ICON := icon/icon.png
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -189,7 +189,8 @@ clean:
 
 make_cia:
 	@echo creating cia file ...
-	@makerom -f cia -o $(TARGET).cia -rsf $(TARGET).rsf -target t -exefslogo -elf $(TARGET).elf -icon $(TARGET).smdh -banner banner.bin
+	@bannertool makebanner -i icon/banner.png -a icon/banner.wav -o banner.bnr
+	@makerom -f cia -o $(TARGET).cia -rsf $(TARGET).rsf -target t -exefslogo -elf $(TARGET).elf -icon $(TARGET).smdh -banner banner.bnr
 	@echo built ... $(TARGET).cia
 
 #---------------------------------------------------------------------------------
