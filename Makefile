@@ -190,7 +190,8 @@ clean:
 make_cia:
 	@echo creating cia file ...
 	@bannertool makebanner -i icon/banner.png -a icon/banner.wav -o banner.bnr
-	@makerom -f cia -o $(TARGET).cia -rsf $(TARGET).rsf -target t -exefslogo -elf $(TARGET).elf -icon $(TARGET).smdh -banner banner.bnr
+	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p $(APP_AUTHOR) -i $(APP_ICON) -o $(TARGET).smdh -f visible
+	@makerom -f cia -o $(TARGET).cia -rsf $(TARGET).rsf -target t -exefslogo -elf $(TARGET).elf -icon $(TARGET).smdh -banner banner.bnr -major 1 -minor 0 -micro 0
 	@echo built ... $(TARGET).cia
 
 #---------------------------------------------------------------------------------

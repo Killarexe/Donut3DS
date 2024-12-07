@@ -99,7 +99,9 @@ int main() {
 
   stop_mod(&player);
 
-  romfsExit();
+  if (result == 0) {
+    romfsExit();
+  }
   ndspExit();
   gfxExit();
 	return 0;
